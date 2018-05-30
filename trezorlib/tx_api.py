@@ -79,7 +79,7 @@ class TxApiInsight(TxApi):
     def __init__(self, network, url, zcash=None):
         super(TxApiInsight, self).__init__(network, url)
         self.zcash = zcash
-        self.pushtx_url = url.replace('/api/', '/tx/send')
+        self.pushtx_url = url.replace('/api/', '/tx/send').replace('/insight-api-zen/','/tx/send')
 
     def get_tx(self, txhash):
 
