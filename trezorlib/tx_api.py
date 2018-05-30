@@ -37,6 +37,16 @@ class TxApi(object):
         url = '%s%s/%s' % (self.url, resource, resourceid)
         return url
 
+    def get_block(self,block_number): #currunt block - block_number
+        r = requests.get(self.url+'blocks/')
+        j = r.json(parse_float=str)
+        block_height =  j['blocks'][block_number]['height']
+        block_hash = j['blocks'][block_number]['hash']
+        block_hash_flipped = binascii.unhexlify("".join(reversed([block_hash[i:i+2] for i in range(0, len(block_hash), 2)])))
+        from struct import pack
+        block_height_flipped = pack('<L',block_height)
+        return block_hash_flipped , block_height_flipped 
+        
     def fetch_json(self, resource, resourceid):
         global cache_dir
         if cache_dir:
