@@ -35,12 +35,17 @@ def _load_coins_json():
 
 
 def _insight_for_coin(coin):
-    if not coin['bitcore']:
+    if not coin['bitcore'] and not coin['blockbook']:
         return None
+    bip115 = coin['bip115']
     zcash = coin['coin_name'].lower().startswith('zcash')
     network = 'insight_{}'.format(coin['coin_name'].lower().replace(' ', '_'))
-    url = coin['bitcore'][0] + '/api/'
-    return TxApiInsight(network=network, url=url, zcash=zcash)
+    if not coin['bitcore']:
+        url = coin['blockbook'][0] + '/api/'
+    else:
+        url = coin['bitcore'][0] + '/api/'
+    print(url)
+    return TxApiInsight(network=network, url=url, zcash=zcash, bip115=bip115)
 
 
 # exported variables
@@ -54,7 +59,7 @@ except Exception as e:
 slip44 = {name: coin['slip44'] for name, coin in by_name.items()}
 tx_api = {name: _insight_for_coin(coin)
           for name, coin in by_name.items()
-          if coin["bitcore"]}
+          if coin["bitcore"] or coin['blockbook']}
 
 # fixup for Dogecoin
 tx_api['Dogecoin'] = TxApiBlockCypher(network='blockcypher_dogecoin', url='https://api.blockcypher.com/v1/doge/main/')
