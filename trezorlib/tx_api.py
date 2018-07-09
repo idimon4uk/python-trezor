@@ -33,6 +33,17 @@ class TxApi(object):
         url = '%s%s/%s' % (self.url, resource, resourceid)
         return url
 
+    def get_block(self, block_number):  # currunt block - block_number
+        r = requests.get(self.url + '/blocks/')
+        j = r.json(parse_float=str)
+        block_height = j['blocks'][0]['height']
+        block_height -= block_number
+        r = requests.get(self.url + '/block-index/' + str(block_height))
+        j = r.json(parse_float=str)
+        block_hash = j['blockHash']
+        block_hash_flipped = binascii.unhexlify("".join(reversed([block_hash[i:i + 2] for i in range(0, len(block_hash), 2)])))
+        return block_hash_flipped, block_height
+
     def fetch_json(self, resource, resourceid):
         global cache_dir
         if cache_dir:
@@ -65,11 +76,15 @@ class TxApi(object):
 
 class TxApiInsight(TxApi):
 
-    def __init__(self, network, url=None, zcash=None):
+    def __init__(self, network, url=None, zcash=None, bip115=False):
         super().__init__(network, url)
         self.zcash = zcash
+        self.bip115 = bip115
         if url:
-            self.pushtx_url = url.replace('/api/', '/tx/send')
+            protocol, link = url.split('://')
+            if ('/' in link):
+                link, api = link.split('/')
+            self.pushtx_url = protocol + '://' + link + '/tx/send'
 
     def get_tx(self, txhash):
 
@@ -97,6 +112,13 @@ class TxApiInsight(TxApi):
             o = t._add_bin_outputs()
             o.amount = int(Decimal(vout['value']) * 100000000)
             o.script_pubkey = binascii.unhexlify(vout['scriptPubKey']['hex'])
+            if(self.bip115 and len(o.script_pubkey) == 63 and o.script_pubkey[-1:] == b'\xb4'):
+                o.block_hash = o.script_pubkey[-37:-5]
+                o.block_height = int.from_bytes(o.script_pubkey[-4:-1], byteorder='little')
+
+            else:
+                o.block_hash = None
+                o.block_height = None
 
         if self.zcash:
             t.overwintered = data.get('fOverwintered', False)
