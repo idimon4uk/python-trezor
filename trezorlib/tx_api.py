@@ -58,7 +58,7 @@ class TxApi(object):
             raise RuntimeError("No URL specified and tx not in cache")
 
         try:
-            url = self.get_url(resource, resourceid)
+            url = self.get_url('/' + resource, resourceid)
             r = requests.get(url, headers={'User-agent': 'Mozilla/5.0'})
             j = r.json(parse_float=str)
         except:
@@ -81,10 +81,10 @@ class TxApiInsight(TxApi):
         self.zcash = zcash
         self.bip115 = bip115
         if url:
-            protocol, link = url.split('://')
+            http_protocol, link = url.split('://')
             if ('/' in link):
                 link, api = link.split('/')
-            self.pushtx_url = protocol + '://' + link + '/tx/send'
+            self.pushtx_url = http_protocol + '://' + link + '/tx/send'
 
     def get_tx(self, txhash):
 
