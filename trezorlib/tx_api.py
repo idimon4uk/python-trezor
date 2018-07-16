@@ -30,7 +30,7 @@ class TxApi(object):
         self.url = url
 
     def get_url(self, resource, resourceid):
-        url = '%s%s/%s' % (self.url, resource, resourceid)
+        url = '%s/%s/%s' % (self.url, resource, resourceid)
         return url
 
     def fetch_json(self, resource, resourceid):
